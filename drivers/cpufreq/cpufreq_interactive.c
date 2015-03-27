@@ -197,7 +197,6 @@ static void cpufreq_interactive_timer_resched(unsigned long cpu,
 		pcpu->cpu_timer.expires = expires;
 		add_timer_on(&pcpu->cpu_timer, cpu);
 	}
-
 	if (tunables->timer_slack_val >= 0 &&
 	    pcpu->target_freq > pcpu->policy->min) {
 		expires += usecs_to_jiffies(tunables->timer_slack_val);
