@@ -45,6 +45,10 @@ static struct workqueue_struct *cpu_boost_wq;
 
 static struct work_struct input_boost_work;
 
+#ifdef CONFIG_STATE_NOTIFIER
+static struct notifier_block notif;
+#endif
+
 static unsigned int boost_ms;
 module_param(boost_ms, uint, 0644);
 
@@ -66,6 +70,11 @@ static bool sched_boost_on_input;
 module_param(sched_boost_on_input, bool, 0644);
 
 static bool sched_boost_active;
+
+#ifdef CONFIG_STATE_NOTIFIER
+bool wakeup_boost;
+module_param(wakeup_boost, bool, 0644);
+#endif
 
 static struct delayed_work input_boost_rem;
 static u64 last_input_time;
@@ -398,6 +407,16 @@ static void cpuboost_input_event(struct input_handle *handle,
 
 	queue_work(cpu_boost_wq, &input_boost_work);
 	last_input_time = ktime_to_us(ktime_get());
+}
+
+bool check_cpuboost(int cpu)
+{
+	struct cpu_sync *i_sync_info;
+	i_sync_info = &per_cpu(sync_info, cpu);
+
+	if (i_sync_info->input_boost_min > 0)
+		return true;
+	return false;
 }
 
 static int cpuboost_input_connect(struct input_handler *handler,
